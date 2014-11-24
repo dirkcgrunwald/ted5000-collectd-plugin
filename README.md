@@ -30,6 +30,7 @@ Add the following to your collectd config **or** use the included redis.conf.
         Host "yourhost"
         User "admin"
         Password "admin"
-        Verbose false
+        SkipZeroes "true"
+        Verbose "false"
       </Module>
     </Plugin>
