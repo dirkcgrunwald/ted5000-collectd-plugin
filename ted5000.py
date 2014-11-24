@@ -32,9 +32,13 @@ def read_callback():
     http = HTTPConnection(TED5000_HOST)
     headers = {'Authorization': 'Basic %s' % user_and_pass}
 
-    http.request('GET', '/api/LiveData.xml', headers=headers)
-    response = http.getresponse()
-    xml = response.read()
+    try:
+        http.request('GET', '/api/LiveData.xml', headers=headers)
+        response = http.getresponse()
+        xml = response.read()
+    except Exception as e:
+        collectd.error('ted5000 plugin: Could not talk to TED 5000: %s' % e.message)
+        return
 
     root = ElementTree.fromstring(xml)
 
@@ -52,6 +56,11 @@ def read_callback():
         val.type_instance = 'voltage.mtu%d' % mtu
         val.values = [voltage]
         val.dispatch()
+
+        if VERBOSE:
+            collectd.info(
+                'ted5000 plugin: Logged for MTU %d: power=%d, voltage=%d' % (mtu, power, voltage))
+
 
 collectd.register_config(configure_callback)
 collectd.register_read(read_callback)
