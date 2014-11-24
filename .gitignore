@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 
+# IntelliJ configs
+*.iml
+.idea/
+
 # C extensions
 *.so
 
