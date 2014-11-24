@@ -40,6 +40,7 @@ def read_callback():
         http.request('GET', '/api/LiveData.xml', headers=headers)
         response = http.getresponse()
         xml = response.read()
+        http.close()
     except Exception as e:
         collectd.error('ted5000 plugin: Could not talk to TED 5000: %s' % e.message)
         return
