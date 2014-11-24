@@ -8,18 +8,22 @@ TED5000_HOST = "ted5000"
 TED5000_USERNAME = "admin"
 TED5000_PASSWORD = "admin"
 VERBOSE = False
+SKIP_ZEROES = True
+
 
 def configure_callback(conf):
-    global TED5000_HOST, TED5000_USERNAME, TED5000_PASSWORD, VERBOSE
+    global TED5000_HOST, TED5000_USERNAME, TED5000_PASSWORD, VERBOSE, SKIP_ZEROES
     for node in conf.children:
         if node.key == 'Host':
             TED5000_HOST = node.values[0]
         elif node.key == 'User':
             TED5000_USERNAME = node.values[0]
-        elif node.key == 'Verbose':
-            VERBOSE = bool(node.values[0])
         elif node.key == 'Password':
             TED5000_PASSWORD = node.values[0]
+        elif node.key == 'Verbose':
+            VERBOSE = bool(node.values[0])
+        elif node.key == 'SkipZeroes':
+            SKIP_ZEROES = bool(node.values[0])
         else:
             collectd.warning('ted5000 plugin: Unknown config key: %s.' % node.key)
     if VERBOSE:
@@ -49,13 +53,15 @@ def read_callback():
         voltage = int(root.find(".//*/MTU%d/VoltageNow" % mtu).text)
 
         val = collectd.Values(plugin='python.ted5000', type='gauge')
-        val.type_instance = 'power.mtu%d' % mtu
-        val.values = [power]
-        val.dispatch()
+        if not SKIP_ZEROES or power != 0:
+            val.type_instance = 'power.mtu%d' % mtu
+            val.values = [power]
+            val.dispatch()
 
-        val.type_instance = 'voltage.mtu%d' % mtu
-        val.values = [voltage]
-        val.dispatch()
+        if not SKIP_ZEROES or voltage != 0:
+            val.type_instance = 'voltage.mtu%d' % mtu
+            val.values = [voltage]
+            val.dispatch()
 
         if VERBOSE:
             collectd.info(
