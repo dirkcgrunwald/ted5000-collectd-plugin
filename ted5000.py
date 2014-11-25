@@ -33,7 +33,7 @@ def configure_callback(conf):
 
 def read_callback():
     user_and_pass = b64encode(b"%s:%s" % (TED5000_USERNAME, TED5000_PASSWORD)).decode("ascii")
-    http = HTTPConnection(TED5000_HOST)
+    http = HTTPConnection(TED5000_HOST, timeout=0.5)
     headers = {'Authorization': 'Basic %s' % user_and_pass}
 
     try:
@@ -53,20 +53,21 @@ def read_callback():
         power = int(root.find(".//*/MTU%d/PowerNow" % mtu).text)
         voltage = int(root.find(".//*/MTU%d/VoltageNow" % mtu).text)
 
-        val = collectd.Values(plugin='python.ted5000', type='gauge')
-        if not SKIP_ZEROES or power != 0:
+        if SKIP_ZEROES and (power == 0 or voltage == 0):
+            collectd.warning('ted5000 plugin: Received 0 volts or watts for MTU %d, skipping' % mtu)
+        else:
+            val = collectd.Values(plugin='python.ted5000', type='gauge')
             val.type_instance = 'power.mtu%d' % mtu
             val.values = [power]
             val.dispatch()
-
-        if not SKIP_ZEROES or voltage != 0:
             val.type_instance = 'voltage.mtu%d' % mtu
             val.values = [voltage]
             val.dispatch()
 
-        if VERBOSE:
-            collectd.info(
-                'ted5000 plugin: Logged for MTU %d: power=%d, voltage=%d' % (mtu, power, voltage))
+            if VERBOSE:
+                collectd.info(
+                    'ted5000 plugin: Logged for MTU %d: power=%d, voltage=%d' % (
+                        mtu, power, voltage))
 
 
 collectd.register_config(configure_callback)
