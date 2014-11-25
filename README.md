@@ -16,7 +16,7 @@ Install
 
 Configuration
 -------------
-Add the following to your collectd config **or** use the included redis.conf.
+Add the following to your collectd config.
 
     <LoadPlugin python>
       Globals true
@@ -26,7 +26,7 @@ Add the following to your collectd config **or** use the included redis.conf.
       ModulePath "/opt/collectd/lib/collectd/plugins/python"
       Import "ted5000"
 
-      <Module redis_info>
+      <Module ted5000>
         Host "yourhost"
         User "admin"
         Password "admin"
